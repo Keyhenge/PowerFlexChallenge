@@ -1,0 +1,35 @@
+package api
+
+import (
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+const (
+	routerTimeout = 30 * time.Second
+)
+
+type RouterParams struct {
+	FactoryHandler service.FactoryHandler
+	SprocketHandler service.SproketHandler
+}
+
+func SetupRouter(params RouterParams) (http.Handler, error) {
+	router := chi.NewRouter()
+	router.Use(middleware.Timeout(routerTimeout))
+
+	router.Group(func(r chi.Router) {
+		r.Route("/factory", func(r chi.Router) {
+			r.Get("/data", params.FactoryHandler.Data())
+			r.Get("/data/{factoryId}", params.FactoryHandler.DataById())
+		})
+		r.Route("/sprocket", func(r chi.Router) {
+			r.Get("/data/{sprocketId}", params.SprocketHandler.Data())
+			r.Put()
+		})
+	})
+}
