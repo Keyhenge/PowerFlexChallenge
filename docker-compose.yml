@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  api:
+    image: powerflex:latest
+    networks:
+      - new
+    ports:
+      - 8080:8080
+    links:
+      - postgres
+    depends_on:
+      - postgres
+  postgres:
+    image: postgres:latest
+    networks:
+      - new
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'pass'
+      POSTGRES_DB: 'postgres'
+  migrate:
+    image: migrate/migrate
+    networks:
+      - new
+    volumes:
+      - ./internal/db/migrations:/migrations
+    command: ["-path", "./migrations", "-database",  "postgresql://user:pass@postgres:5432/postgres?sslmode=disable", "up"]
+    links:
+      - postgres
+    depends_on:
+      - postgres
+networks:
+  new:
